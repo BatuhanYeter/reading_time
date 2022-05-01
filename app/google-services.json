@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "570803757084",
+    "project_id": "reading-time-9a1d9",
+    "storage_bucket": "reading-time-9a1d9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:570803757084:android:812495d2a116b34322ffd9",
+        "android_client_info": {
+          "package_name": "batu.tutorials.readingtime"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "570803757084-dkgut3m6h6b7b805ncqon6apuvho5pfd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "batu.tutorials.readingtime",
+            "certificate_hash": "864f4f42a2439ee4feff2d3dded33107f0629cf5"
+          }
+        },
+        {
+          "client_id": "570803757084-0m72ofdhrbb7aamfe2unvgif196n0tq8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeAGwMb_wKcD6Th2ZXalKUkEuE3ovsP5E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "570803757084-0m72ofdhrbb7aamfe2unvgif196n0tq8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
