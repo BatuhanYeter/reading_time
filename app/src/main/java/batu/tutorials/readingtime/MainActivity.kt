@@ -8,6 +8,10 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,12 +23,14 @@ import com.android.volley.toolbox.Volley
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
+import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.GsonBuilder
 import kotlinx.android.synthetic.main.activity_loading.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import org.json.JSONException
 import java.util.ArrayList
 
@@ -42,197 +48,64 @@ class MainActivity : AppCompatActivity() {
     private lateinit var editTextSearch: EditText
     private lateinit var buttonSearch: ImageButton
 
+    lateinit var toggle: ActionBarDrawerToggle
+    lateinit var drawerLayout: DrawerLayout
+    lateinit var navView: NavigationView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setSupportActionBar(toolbar)
 
-        // initializing our views.
-        progressBar = findViewById(R.id.progressBar)
-        editTextSearch = findViewById(R.id.editTextSearchBooks)
-        buttonSearch = findViewById(R.id.imageButtonSearch)
+        drawerLayout = findViewById(R.id.drawerLayout)
+        navView = findViewById(R.id.nav_view)
 
+        toggle = ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open, R.string.close)
+        toggle.isDrawerIndicatorEnabled = true
 
-        // initializing on click listener for our button.
-        buttonSearch.setOnClickListener(View.OnClickListener {
-            progressBar.visibility = View.VISIBLE
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
 
-            // checking if our edittext field is empty or not.
-            if (editTextSearch.text.toString().isEmpty()) {
-                editTextSearch.error = "Please enter search query"
-                progressBar.visibility = View.GONE
-                return@OnClickListener
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeButtonEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_baseline_menu_24)
+
+        navView.setNavigationItemSelectedListener { item ->
+            item.isChecked = true
+            when (item.itemId) {
+                R.id.nav_item_home -> replaceFragment(HomeFragment(), "Home")
+                R.id.nav_item_reading -> replaceFragment(ReadingListFragment(), "Reading List")
+                R.id.nav_item_finished -> replaceFragment(FinishedListFragment(), "Finished Reading")
+                R.id.nav_item_recommendations -> replaceFragment((RecommendationFragment()), "Recommendations")
+                R.id.nav_item_signout -> signOut()
             }
-            // if the search query is not empty then we are
-            // calling get book info method to load all
-            // the books from the API.
-            getBooksInfo(editTextSearch.text.toString())
-        })
-
-
-        buttonSignOut.setOnClickListener {
-            signOut()
+            true
         }
 
-        binding.recyclerView.apply {
-            layoutManager = GridLayoutManager(applicationContext, 2)
-            adapter = CardAdapter(bookList, this@MainActivity)
-        }
+        navView.setCheckedItem(R.id.nav_item_home)
+        val defFragment = HomeFragment()
+        replaceFragment(defFragment, "Home")
+    }
+
+    private fun replaceFragment(fragment: Fragment, title: String) {
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.fragmentContainer, fragment).commit()
+        supportActionBar?.title = title
+        drawerLayout.closeDrawer(GravityCompat.START)
     }
 
     override fun onStart() {
         super.onStart()
         val user = FirebaseAuth.getInstance().currentUser
         if(user != null) {
-            getBooks()
+            // getBooks()
         } else {
             createSignInIntent()
         }
     }
 
-    private fun getBooksInfo(query: String) {
 
-        // creating a new array list.
-        bookInfoArrayList = ArrayList<BookInfo>()
-
-        // below line is use to initialize
-        // the variable for our request queue.
-        mRequestQueue = Volley.newRequestQueue(this@MainActivity)
-
-        // below line is use to clear cache this
-        // will be use when our data is being updated.
-        mRequestQueue!!.cache.clear()
-
-        // below is the url for getting data from API in json format.
-        val url = "https://www.googleapis.com/books/v1/volumes?q=$query"
-
-        // below line we are creating a new request queue.
-        val queue = Volley.newRequestQueue(this@MainActivity)
-
-        // below line is use to make json object request inside that we
-        // are passing url, get method and getting json object. .
-        val booksRequest = JsonObjectRequest(
-            Request.Method.GET, url, null,
-            { response ->
-                progressBar.visibility = View.GONE
-                // inside on response method we are extracting all our json data.
-                try {
-                    val itemsArray = response.getJSONArray("items")
-                    for (i in 0 until itemsArray.length()) {
-                        val itemsObj = itemsArray.getJSONObject(i)
-                        val volumeObj = itemsObj.getJSONObject("volumeInfo")
-                        val title = volumeObj.optString("title")
-                        val id = itemsObj.getString("id")
-                        Log.e("id", id.toString())
-                        val subtitle = volumeObj.optString("subtitle")
-                        val authorsArray = volumeObj.getJSONArray("authors")
-                        val publisher = volumeObj.optString("publisher")
-                        val publishedDate = volumeObj.optString("publishedDate")
-                        val description = volumeObj.optString("description")
-                        val pageCount = volumeObj.optInt("pageCount")
-                        val imageLinks = volumeObj.optJSONObject("imageLinks")
-
-                        var thumbnail = ""
-                        if(imageLinks == null) thumbnail = ""
-                        else thumbnail = imageLinks.optString("thumbnail")
-                        Log.e("thumbnail", thumbnail)
-
-                        val previewLink = volumeObj.optString("previewLink")
-                        val infoLink = volumeObj.optString("infoLink")
-                        val saleInfoObj = itemsObj.optJSONObject("saleInfo")
-                        val buyLink = saleInfoObj.optString("buyLink")
-                        val authorsArrayList = ArrayList<String>()
-                        if (authorsArray.length() != 0) {
-                            for (j in 0 until authorsArray.length()) {
-                                authorsArrayList.add(authorsArray.optString(i))
-                            }
-                        }
-                        // after extracting all the data we are
-                        // saving this data in our modal class.
-                        val bookInfo = BookInfo(
-                            title,
-                            id,
-                            subtitle,
-                            authorsArrayList,
-                            publisher,
-                            publishedDate,
-                            description,
-                            pageCount,
-                            thumbnail,
-                            previewLink,
-                            infoLink,
-                            buyLink
-                        )
-                        // below line is use to pass our modal
-                        // class in our array list.
-                        bookInfoArrayList!!.add(bookInfo)
-
-                    }
-                    // below line is use to pass our
-                    // array list in adapter class.
-                    val adapter = BookAdapter(bookInfoArrayList!!, this@MainActivity)
-
-                    // below line is use to add linear layout
-                    // manager for our recycler view.
-                    val linearLayoutManager =
-                        LinearLayoutManager(this@MainActivity, RecyclerView.VERTICAL, false)
-                    val mRecyclerView = findViewById<View>(R.id.recyclerView) as RecyclerView
-
-                    // in below line we are setting layout manager and
-                    // adapter to our recycler view.
-                    mRecyclerView.layoutManager = linearLayoutManager
-                    mRecyclerView.adapter = adapter
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                    // displaying a toast message when we get any error from API
-                    Toast.makeText(this@MainActivity, "No Data Found$e", Toast.LENGTH_SHORT).show()
-                }
-            }) { error -> // also displaying error message in toast.
-            Toast.makeText(this@MainActivity, "Error found is $error", Toast.LENGTH_SHORT).show()
-        }
-        // at last we are adding our json object
-        // request in our request queue.
-        queue.add(booksRequest)
-    }
-
-    private fun getBooks() {
-        // loading - starting
-        progressBar.visibility = View.VISIBLE
-
-        val apiKey = "AIzaSyAZLJbLIg5C_BCwYprOH8yofjAZt8LKbZY"
-        var searchKeywords = "sherlock holmes"
-        var splitKeywords = searchKeywords.replace(" ", "+")
-
-        val baseUrl =
-            "https://www.googleapis.com/books/v1/volumes?q=flowers+inauthor:keyes&key=$apiKey"
-        val searchUrl = "https://www.googleapis.com/books/v1/volumes?q=$splitKeywords"
-
-        // Instantiate the RequestQueue.
-        val queue = Volley.newRequestQueue(this)
-
-        // jsonRequest
-        val jsonObjectRequest = JsonObjectRequest(
-            Request.Method.GET, baseUrl, null,
-            { response ->
-                val items = response.getJSONArray("items")
-                val gson = GsonBuilder().registerTypeAdapter(Book::class.java, BookDeserializer()).create()
-                for (i in 0 until items.length()) {
-                    val book = gson.fromJson(items.get(i).toString(), Book::class.java)
-                    bookList.add(book)
-                    Log.e("Book -> ${i+1}", book.title)
-                }
-                Log.e("Size in for", bookList.size.toString())
-            },
-            { error ->
-                // TODO: Handle error
-            }
-        )
-
-        // Add the request to the RequestQueue.
-        queue.add(jsonObjectRequest)
-        // loading - done
-        progressBar.visibility = View.INVISIBLE
-    }
 
     private fun createSignInIntent() {
         val providers = arrayListOf(
@@ -291,6 +164,7 @@ class MainActivity : AppCompatActivity() {
         AuthUI.getInstance()
             .signOut(this)
             .addOnCompleteListener {
+                drawerLayout.closeDrawer(GravityCompat.START)
                 createSignInIntent()
             }
     }
