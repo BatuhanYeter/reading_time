@@ -109,33 +109,23 @@ class BookDetailActivity : AppCompatActivity() {
             // add this book to the shelf.
             val user = FirebaseAuth.getInstance().currentUser
             val database = Firebase.firestore
-
+            val book = hashMapOf(
+                "title" to title,
+                "pageCount" to pageCount
+            )
             database.collection("users").document(user!!.uid).collection("reading_list")
-                .document(bookId.toString()).addSnapshotListener { value, error ->
-                    if (value!!.exists()) {
-                        Log.e("Book", "Already in your reading list!")
-                        Toast.makeText(
-                            this,
-                            "Book $title is already in your reading list.",
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
-                    } else {
-                        val book = hashMapOf(
-                            "title" to title,
-                            "pageCount" to pageCount
-                        )
-                        database.collection("users").document(user.uid).collection("reading_list")
-                            .document(bookId.toString()).set(book).addOnSuccessListener {
-                                Log.d(
-                                    "Success",
-                                    "DocumentSnapshot successfully written!"
-                                )
-                            }.addOnFailureListener { e ->
-                                Log.w("Error", "Error writing document", e)
-                            }
-                    }
+                .document(bookId.toString()).set(book).addOnSuccessListener {
+                    Log.d(
+                        "Success",
+                        "DocumentSnapshot successfully written!"
+                    )
+                    Toast.makeText(this, "Added to your reading list.", Toast.LENGTH_SHORT).show()
+                    // TODO: when a book is added to reading list, it needs to be deleted from the finished list
+                    // and the amount of time needs to be decreased
+                }.addOnFailureListener { e ->
+                    Log.w("Error", "Error writing document", e)
                 }
+
 
             /* val uri = Uri.parse(previewLink)
             val i = Intent(Intent.ACTION_VIEW, uri)
@@ -158,35 +148,33 @@ class BookDetailActivity : AppCompatActivity() {
             val user = FirebaseAuth.getInstance().currentUser
             val database = Firebase.firestore
 
+            val book = hashMapOf(
+                "title" to title,
+                "pageCount" to pageCount
+            )
+
             database.collection("users").document(user!!.uid).collection("finished_reading")
-                .document(bookId.toString()).addSnapshotListener { value, error ->
-                    if (value!!.exists()) {
-                        Log.e("Book", "is in your finished list!")
-                        Toast.makeText(
-                            this,
-                            "Book $title is in your finished list.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        val book = hashMapOf(
-                            "title" to title,
-                            "pageCount" to pageCount
+                .document(bookId.toString()).set(book).addOnSuccessListener {
+                    Log.d(
+                        "Success",
+                        "DocumentSnapshot successfully written!"
+                    )
+                    Toast.makeText(this, "Added to your finished list.", Toast.LENGTH_SHORT).show()
+                    // for now, only average speed of reading is used
+                    database.collection("users").document(user.uid)
+                        .update(
+                            "total_time",
+                            FieldValue.increment(pageCount.toDouble() * 300 / 200)
                         )
-                        database.collection("users").document(user.uid)
-                            .collection("finished_reading")
-                            .document(bookId.toString()).set(book).addOnSuccessListener {
-                                Log.d(
-                                    "Success",
-                                    "DocumentSnapshot successfully written!"
-                                )
-                                // for now, only average speed of reading is used
-                                database.collection("users").document(user.uid)
-                                    .update("total_time", FieldValue.increment(pageCount.toDouble() * 300 / 200 ))
-                            }.addOnFailureListener { e ->
-                                Log.w("Error", "Error writing document", e)
-                            }
-                    }
+                    database.collection("users").document(user.uid).collection("reading_list")
+                        .document(bookId.toString()).delete().addOnSuccessListener {
+                            Log.e("Read and deleted", "$bookId deleted from the reading list")
+                        }
+                }.addOnFailureListener { e ->
+                    Log.w("Error", "Error writing document", e)
                 }
+
+
         })
     }
 }
