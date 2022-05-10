@@ -1,32 +1,25 @@
 package batu.tutorials.readingtime
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.fragment_finished_list.*
+import kotlinx.android.synthetic.main.fragment_reading_list.*
+import java.util.ArrayList
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [FinishedListFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class FinishedListFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-
+    private var bookInfoArrayList: ArrayList<BookInfo>? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
     }
 
     override fun onCreateView(
@@ -37,23 +30,73 @@ class FinishedListFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_finished_list, container, false)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment FinishedListFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            FinishedListFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        getBooksInfo()
+        super.onViewCreated(view, savedInstanceState)
+    }
+    private fun getBooksInfo() {
+        progressBarFinishedReading.visibility = View.VISIBLE
+        // creating a new array list.
+        bookInfoArrayList = ArrayList<BookInfo>()
+        val user = FirebaseAuth.getInstance().currentUser
+        val database = Firebase.firestore
+        val docRef = database.collection("users").document(user!!.uid).collection("finished_reading")
+        docRef.get().addOnSuccessListener { documents ->
+            // Log.e("docs", documents.toString())
+            if(documents != null) {
+                for (document in documents) {
+                    // Log.e("doc", "${document.id} => ${document.data}")
+                    // Log.e("title", "${document.data["title"]}")
+                    val data = document.data
+                    val title = data["title"].toString()
+                    val id = data["id"].toString()
+                    val subtitle = data["subtitle"].toString()
+                    // val authorsArray = data["authors"]
+                    val authorsArrayList = ArrayList<String>()
+                    val publisher = data["publisher"].toString()
+                    val publishedDate = data["publishedDate"].toString()
+                    val description = data["description"].toString()
+                    val pageCount = data["pageCount"] as Long
+                    val thumbnail = data["thumbnail"].toString()
+
+
+                    val bookInfo = BookInfo(
+                        title,
+                        id,
+                        subtitle,
+                        authorsArrayList,
+                        publisher,
+                        publishedDate,
+                        description,
+                        pageCount.toInt(),
+                        thumbnail
+                    )
+                    // below line is use to pass our modal
+                    // class in our array list.
+                    bookInfoArrayList!!.add(bookInfo)
                 }
+
+                // below line is use to pass our
+                // array list in adapter class.
+                val adapter = BookAdapter(bookInfoArrayList!!, this.requireContext())
+
+                // below line is use to add linear layout
+                // manager for our recycler view.
+                val linearLayoutManager =
+                    LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
+
+                // in below line we are setting layout manager and
+                // adapter to our recycler view.
+                recyclerViewFinishedList.layoutManager = linearLayoutManager
+                recyclerViewFinishedList.adapter = adapter
+
+                progressBarFinishedReading.visibility = View.GONE
+            } else {
+                Toast.makeText(this.context, "There is no book in this list!", Toast.LENGTH_SHORT).show()
             }
+
+        }.addOnFailureListener { exception ->
+            Log.e("failed", "Error getting documents: ", exception)
+        }
     }
 }

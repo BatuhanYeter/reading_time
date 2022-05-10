@@ -52,9 +52,6 @@ class BookAdapter     // creating constructor for array list and context.
             i.putExtra("description", bookInfo.description)
             i.putExtra("pageCount", bookInfo.pageCount)
             i.putExtra("thumbnail", bookInfo.thumbnail)
-            i.putExtra("previewLink", bookInfo.previewLink)
-            i.putExtra("infoLink", bookInfo.infoLink)
-            i.putExtra("buyLink", bookInfo.buyLink)
             Log.e("authors in adapter", bookInfo.authors.toString())
             // after passing that data we are
             // starting our new intent.

@@ -123,10 +123,6 @@ class HomeFragment : Fragment() {
                         else thumbnail = imageLinks.optString("thumbnail")
                         Log.e("thumbnail", thumbnail)
 
-                        val previewLink = volumeObj.optString("previewLink")
-                        val infoLink = volumeObj.optString("infoLink")
-                        val saleInfoObj = itemsObj.optJSONObject("saleInfo")
-                        val buyLink = saleInfoObj.optString("buyLink")
                         val authorsArrayList = ArrayList<String>()
                         if (authorsArray.length() != 0) {
                             for (j in 0 until authorsArray.length()) {
@@ -144,10 +140,7 @@ class HomeFragment : Fragment() {
                             publishedDate,
                             description,
                             pageCount,
-                            thumbnail,
-                            previewLink,
-                            infoLink,
-                            buyLink
+                            thumbnail
                         )
                         // below line is use to pass our modal
                         // class in our array list.

@@ -28,9 +28,6 @@ class BookDetailActivity : AppCompatActivity() {
     var publishedDate: String? = null
     var description: String? = null
     var thumbnail: String? = null
-    var previewLink: String? = null
-    var infoLink: String? = null
-    var buyLink: String? = null
     var pageCount = 0
     var authors: ArrayList<String>? = null
 
@@ -69,9 +66,6 @@ class BookDetailActivity : AppCompatActivity() {
         description = intent.getStringExtra("description")
         pageCount = intent.getIntExtra("pageCount", 0)
         thumbnail = intent.getStringExtra("thumbnail")
-        previewLink = intent.getStringExtra("previewLink")
-        infoLink = intent.getStringExtra("infoLink")
-        buyLink = intent.getStringExtra("buyLink")
         authors = intent.getStringArrayListExtra("authors")
 
         Log.e("authors", authors.toString())
@@ -111,7 +105,14 @@ class BookDetailActivity : AppCompatActivity() {
             val database = Firebase.firestore
             val book = hashMapOf(
                 "title" to title,
-                "pageCount" to pageCount
+                "id" to bookId,
+                "subtitle" to subtitle,
+                "publisher" to publisher,
+                "publishedDate" to publishedDate,
+                "pageCount" to pageCount,
+                "thumbnail" to thumbnail,
+                "authors" to authors,
+                "description" to description,
             )
             database.collection("users").document(user!!.uid).collection("reading_list")
                 .document(bookId.toString()).set(book).addOnSuccessListener {
@@ -150,7 +151,14 @@ class BookDetailActivity : AppCompatActivity() {
 
             val book = hashMapOf(
                 "title" to title,
-                "pageCount" to pageCount
+                "id" to bookId,
+                "subtitle" to subtitle,
+                "publisher" to publisher,
+                "publishedDate" to publishedDate,
+                "pageCount" to pageCount,
+                "thumbnail" to thumbnail,
+                "authors" to authors,
+                "description" to description,
             )
 
             database.collection("users").document(user!!.uid).collection("finished_reading")
