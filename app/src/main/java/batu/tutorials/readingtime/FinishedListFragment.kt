@@ -12,9 +12,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.gson.JsonArray
 import kotlinx.android.synthetic.main.fragment_finished_list.*
 import kotlinx.android.synthetic.main.fragment_reading_list.*
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 
 class FinishedListFragment : Fragment() {
     private var bookInfoArrayList: ArrayList<BookInfo>? = null
@@ -51,8 +52,12 @@ class FinishedListFragment : Fragment() {
                     val title = data["title"].toString()
                     val id = data["id"].toString()
                     val subtitle = data["subtitle"].toString()
-                    // val authorsArray = data["authors"]
+                    val authorsArray = data["authors"] as ArrayList<*>
                     val authorsArrayList = ArrayList<String>()
+                    for (i in authorsArray) {
+                        authorsArrayList.add(i.toString())
+                    }
+                    Log.e("finished reading =>", authorsArrayList.toString())
                     val publisher = data["publisher"].toString()
                     val publishedDate = data["publishedDate"].toString()
                     val description = data["description"].toString()
@@ -78,7 +83,7 @@ class FinishedListFragment : Fragment() {
 
                 // below line is use to pass our
                 // array list in adapter class.
-                val adapter = BookAdapter(bookInfoArrayList!!, this.requireContext())
+                val adapter = BookAdapter(bookInfoArrayList!!, context!!)
 
                 // below line is use to add linear layout
                 // manager for our recycler view.

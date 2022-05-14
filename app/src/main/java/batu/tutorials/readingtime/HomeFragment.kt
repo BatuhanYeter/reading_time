@@ -89,8 +89,9 @@ class HomeFragment : Fragment() {
         // will be use when our data is being updated.
         mRequestQueue!!.cache.clear()
 
+        val apiKey = "AIzaSyAZLJbLIg5C_BCwYprOH8yofjAZt8LKbZY"
         // below is the url for getting data from API in json format.
-        val url = "https://www.googleapis.com/books/v1/volumes?q=$query"
+        val url = "https://www.googleapis.com/books/v1/volumes?q=$query&printType=books&key=$apiKey"
 
         // below line we are creating a new request queue.
         val queue = Volley.newRequestQueue(this.context)
@@ -120,15 +121,20 @@ class HomeFragment : Fragment() {
 
                         var thumbnail = ""
                         if(imageLinks == null) thumbnail = ""
-                        else thumbnail = imageLinks.optString("thumbnail")
-                        Log.e("thumbnail", thumbnail)
+                        else {
+                            thumbnail = imageLinks.optString("thumbnail")
+                            thumbnail = thumbnail.replace("http", "https")
+                        }
 
+                        Log.e("authors get request", authorsArray.toString())
                         val authorsArrayList = ArrayList<String>()
+
                         if (authorsArray.length() != 0) {
-                            for (j in 0 until authorsArray.length()) {
+                            for (i in 0 until authorsArray.length()) {
                                 authorsArrayList.add(authorsArray.optString(i))
                             }
                         }
+                        Log.e("authors arraylist", authorsArrayList.toString())
                         // after extracting all the data we are
                         // saving this data in our modal class.
                         val bookInfo = BookInfo(

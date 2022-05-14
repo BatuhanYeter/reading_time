@@ -58,8 +58,12 @@ class ReadingListFragment : Fragment() {
                     val title = data["title"].toString()
                     val id = data["id"].toString()
                     val subtitle = data["subtitle"].toString()
-                    // val authorsArray = data["authors"]
+                    val authorsArray = data["authors"] as ArrayList<*>
                     val authorsArrayList = ArrayList<String>()
+                    for (i in authorsArray) {
+                        authorsArrayList.add(i.toString())
+                    }
+                    Log.e("reading list =>", authorsArrayList.toString())
                     val publisher = data["publisher"].toString()
                     val publishedDate = data["publishedDate"].toString()
                     val description = data["description"].toString()
