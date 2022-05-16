@@ -115,7 +115,6 @@ class BookDetailActivity : AppCompatActivity() {
                 return@OnClickListener
             }
             // if the id is not empty
-            // add this book to the shelf.
             val user = FirebaseAuth.getInstance().currentUser
             val database = Firebase.firestore
             val book = hashMapOf(
@@ -136,16 +135,26 @@ class BookDetailActivity : AppCompatActivity() {
                         "DocumentSnapshot successfully written!"
                     )
                     Toast.makeText(this, "Added to your reading list.", Toast.LENGTH_SHORT).show()
-                    // TODO: when a book is added to reading list, it needs to be deleted from the finished list
-                    // and the amount of time needs to be decreased
+                    // check if the book exists in the user's finished list
+                    database.collection("users").document(user.uid).collection("finished_reading")
+                        .document(bookId.toString()).get().addOnSuccessListener { docSnap ->
+                            if (docSnap.exists()) {
+                                // it exists, then delete it from the finished list and decrease the total_time
+                                database.collection("users").document(user.uid).collection("finished_reading")
+                                    .document(bookId.toString()).delete().addOnSuccessListener {
+                                        Log.e("Read and deleted", "$bookId deleted from the finished list")
+                                        // for now, only average speed of reading is used
+                                        database.collection("users").document(user.uid)
+                                            .update(
+                                                "total_time",
+                                                FieldValue.increment(-pageCount.toDouble() * 300 / 200)
+                                            )
+                                    }
+                            }
+                        }
                 }.addOnFailureListener { e ->
                     Log.w("Error", "Error writing document", e)
                 }
-
-
-            /* val uri = Uri.parse(previewLink)
-            val i = Intent(Intent.ACTION_VIEW, uri)
-            startActivity(i) */
         })
 
         // initializing on click listener for buy button.
@@ -160,7 +169,6 @@ class BookDetailActivity : AppCompatActivity() {
                 return@OnClickListener
             }
             // if the id is not empty
-            // add this book to the shelf.
             val user = FirebaseAuth.getInstance().currentUser
             val database = Firebase.firestore
 
@@ -179,96 +187,156 @@ class BookDetailActivity : AppCompatActivity() {
                 "userRating" to rating
             )
 
-            // add to finished_reading collection
+
+            // check if the book is already in the user's list or not
             database.collection("users").document(user!!.uid).collection("finished_reading")
-                .document(bookId.toString()).set(book).addOnSuccessListener {
-                    Log.d(
-                        "Success",
-                        "DocumentSnapshot successfully written!"
-                    )
-                    Toast.makeText(this, "Added to your finished list.", Toast.LENGTH_SHORT).show()
-                    // for now, only average speed of reading is used
-                    database.collection("users").document(user.uid)
-                        .update(
-                            "total_time",
-                            FieldValue.increment(pageCount.toDouble() * 300 / 200)
-                        )
-                    database.collection("users").document(user.uid).collection("reading_list")
-                        .document(bookId.toString()).delete().addOnSuccessListener {
-                            Log.e("Read and deleted", "$bookId deleted from the reading list")
-                        }
-                }.addOnFailureListener { e ->
-                    Log.w("Error", "Error writing document", e)
-                }
-
-            database.collection("books").document(bookId.toString()).get()
-                .addOnSuccessListener { docSnap ->
-                    if (docSnap.exists()) {
-                        database.collection("books").document(bookId.toString()).get()
-                            .addOnSuccessListener { snapshot ->
-                                Log.e("Nesin snapshot success", snapshot["avg_rating"].toString())
-                                if (snapshot["avg_rating"] != null && snapshot["times"] != null) {
-                                    val tempAvg: Any? = snapshot["avg_rating"]
-                                    val tempTimes: Any? = snapshot["times"]
-
-                                    var avg = 0.0
-                                    var times = 0
-                                    if (tempAvg is Long) {
-                                        avg = tempAvg.toDouble()
-                                    } else if (tempAvg is Double) {
-                                        avg = tempAvg
-                                    }
-
-                                    if (tempTimes is Long) {
-                                        times = tempTimes.toInt()
-                                    } else if (tempTimes is Double) {
-                                        times = tempTimes.toInt()
-                                    } else if (tempTimes is Int) {
-                                        times = tempTimes
-                                    }
-                                    times += 1
-                                    avg = (avg + rating)
-                                    Log.e("nesin rating now", avg.toString())
-                                    database.collection("books").document(bookId.toString()).update(
-                                        mapOf(
-                                            "avg_rating" to avg,
-                                            "times" to times
-                                        )
-                                    )
-                                }
-
-                            }.addOnFailureListener {
-                                Log.e("avg rating", "not found!")
-                            }
-
-                        val userData = hashMapOf("id" to user.uid, "rating" to rating)
-                        database.collection("books").document(bookId.toString())
-                            .collection("users_read_this").document(user.uid)
-                            .set(userData)
+                .document(bookId.toString()).get().addOnSuccessListener { docSnap ->
+                    if(docSnap.exists()) {
+                        // already exists in the finished reading list
+                        Toast.makeText(this, "This book is already in your finished list!", Toast.LENGTH_SHORT).show()
 
                     } else {
-                        val userData = hashMapOf("id" to user.uid, "rating" to rating)
-                        val bookForAverage = hashMapOf(
-                            "title" to title,
-                            "id" to bookId,
-                            "subtitle" to subtitle,
-                            "publisher" to publisher,
-                            "publishedDate" to publishedDate,
-                            "pageCount" to pageCount,
-                            "thumbnail" to thumbnail,
-                            "authors" to authors,
-                            "description" to description,
-                            "average_rating" to 0.0,
-                            "times" to 0
-                        )
-                        database.collection("books").document(bookId.toString()).set(bookForAverage)
-                            .addOnCompleteListener {
+                        // not exists
+                        // add to finished_reading collection
+                        database.collection("users").document(user.uid).collection("finished_reading")
+                            .document(bookId.toString()).set(book).addOnSuccessListener {
+                                Log.d(
+                                    "Success",
+                                    "DocumentSnapshot successfully written!"
+                                )
+                                Toast.makeText(this, "Added to your finished list.", Toast.LENGTH_SHORT).show()
+                                // for now, only average speed of reading is used
+                                database.collection("users").document(user.uid)
+                                    .update(
+                                        "total_time",
+                                        FieldValue.increment(pageCount.toDouble() * 300 / 200)
+                                    )
+                                // also delete from the reading_list if exists
+                                database.collection("users").document(user.uid).collection("reading_list")
+                                    .document(bookId.toString()).delete().addOnSuccessListener {
+                                        Log.e("Read and deleted", "$bookId deleted from the reading list")
+                                    }
+                            }.addOnFailureListener { e ->
+                                Log.w("Error", "Error writing document", e)
+                            }
+                    }
+                    // add to books collection and beyond (users_read_this collection and check if rated)
+                    database.collection("books").document(bookId.toString()).get()
+                        .addOnSuccessListener { docSnap ->
+                            if (docSnap.exists()) {
+                                database.collection("books").document(bookId.toString()).get()
+                                    .addOnSuccessListener { snapshot ->
+                                        // if avg_rating already defined
+                                        if (snapshot["avg_rating"] != null && snapshot["times"] != null) {
+                                            // check if the user already rated
+                                            database.collection("books").document(bookId.toString())
+                                                .collection("users_read_this").whereEqualTo("id", user.uid)
+                                                .get().addOnSuccessListener {
+                                                    // already rated, (avg - oldRating) and then (avg + new rating)
+                                                    database.collection("books").document(bookId.toString())
+                                                        .collection("users_read_this").document(user.uid)
+                                                        .update("rating", rating)
+                                                    Log.e("already rated enter", "new rating: $rating")
+
+                                                    // sum up all the ratings
+                                                    database.collection("books").document(bookId.toString())
+                                                        .collection("users_read_this")
+                                                        .whereGreaterThan("rating", 0.0).get()
+                                                        .addOnSuccessListener { documents ->
+                                                            var finalRating = 0.0
+                                                            for (document in documents) {
+                                                                val tempRating = document.data["rating"]
+                                                                if (tempRating is Long) finalRating += tempRating.toDouble()
+                                                                else if (tempRating is Double) finalRating += tempRating
+                                                            }
+
+                                                            // finally, update the avg_rating
+                                                            database.collection("books")
+                                                                .document(bookId.toString())
+                                                                .update("avg_rating", finalRating)
+                                                            Log.e(
+                                                                "already rated sum",
+                                                                "sum ratings: $finalRating"
+                                                            )
+                                                        }
+                                                    Toast.makeText(
+                                                        this,
+                                                        "Your rating is updated!",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }.addOnFailureListener {
+                                                    // not rated before, set the user data
+                                                    database.collection("books").document(bookId.toString())
+                                                        .collection("users_read_this").document(user.uid)
+                                                        .update("rating", rating)
+
+                                                    // sum up all the ratings
+                                                    var finalRating = 0.0
+                                                    database.collection("books").document(bookId.toString())
+                                                        .collection("users_read_this")
+                                                        .whereGreaterThan("rating", 0.0).get()
+                                                        .addOnSuccessListener { documents ->
+                                                            for (document in documents) {
+                                                                val tempRating = document.data["rating"]
+                                                                if (tempRating is Long) finalRating += tempRating.toDouble()
+                                                                else if (tempRating is Double) finalRating += tempRating
+                                                            }
+                                                        }
+
+                                                    // finally, update the avg_rating
+                                                    database.collection("books").document(bookId.toString())
+                                                        .update(
+                                                            hashMapOf(
+                                                                "avg_rating" to finalRating,
+                                                                "times" to FieldValue.increment(1)
+                                                            )
+                                                        )
+                                                }
+                                        }
+                                    }.addOnFailureListener {
+                                        Log.e("avg rating", "not found!")
+                                    }
+
+                                val userData = hashMapOf("id" to user.uid, "rating" to rating)
                                 database.collection("books").document(bookId.toString())
                                     .collection("users_read_this").document(user.uid)
                                     .set(userData)
+                            } else {
+                                // set the book to books collection for the first time
+                                val userData = hashMapOf("id" to user.uid, "rating" to rating)
+                                val bookForAverage = hashMapOf(
+                                    "title" to title,
+                                    "id" to bookId,
+                                    "subtitle" to subtitle,
+                                    "publisher" to publisher,
+                                    "publishedDate" to publishedDate,
+                                    "pageCount" to pageCount,
+                                    "thumbnail" to thumbnail,
+                                    "authors" to authors,
+                                    "description" to description,
+                                    "avg_rating" to 0.0,
+                                    "times" to 0
+                                )
+                                database.collection("books").document(bookId.toString()).set(bookForAverage)
+                                    .addOnCompleteListener {
+                                        database.collection("books").document(bookId.toString())
+                                            .collection("users_read_this").document(user.uid)
+                                            .set(userData)
+                                    }
+                                database.collection("books").document(bookId.toString())
+                                    .update(
+                                        mapOf(
+                                            "avg_rating" to rating,
+                                            "times" to 1
+                                        )
+                                    )
                             }
-                    }
+                        }
                 }
+
+
+
+
         })
 
         val user = FirebaseAuth.getInstance().currentUser
