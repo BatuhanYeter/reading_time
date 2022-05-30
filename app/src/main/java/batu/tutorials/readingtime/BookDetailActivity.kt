@@ -260,6 +260,11 @@ class BookDetailActivity : AppCompatActivity() {
                                                         "already rated enter",
                                                         "new rating: $rating"
                                                     )
+                                                    // update the userRating in users collection
+                                                    database.collection("users").document(user.uid)
+                                                        .collection("finished_reading")
+                                                        .document(bookId.toString())
+                                                        .update("userRating", rating)
 
                                                     // sum up all the ratings
                                                     var finalRating = 0.0
@@ -281,7 +286,7 @@ class BookDetailActivity : AppCompatActivity() {
                                                                     finalTimes += 1
                                                                 }
                                                             }
-                                                            // finally, update the avg_rating
+                                                            // update the avg_rating
                                                             database.collection("books")
                                                                 .document(bookId.toString())
                                                                 .update(
@@ -290,6 +295,7 @@ class BookDetailActivity : AppCompatActivity() {
                                                                         "times" to finalTimes
                                                                     )
                                                                 )
+
                                                         }
 
                                                     Toast.makeText(
