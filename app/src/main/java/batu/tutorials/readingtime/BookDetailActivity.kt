@@ -140,9 +140,13 @@ class BookDetailActivity : AppCompatActivity() {
                         .document(bookId.toString()).get().addOnSuccessListener { docSnap ->
                             if (docSnap.exists()) {
                                 // it exists, then delete it from the finished list and decrease the total_time
-                                database.collection("users").document(user.uid).collection("finished_reading")
+                                database.collection("users").document(user.uid)
+                                    .collection("finished_reading")
                                     .document(bookId.toString()).delete().addOnSuccessListener {
-                                        Log.e("Read and deleted", "$bookId deleted from the finished list")
+                                        Log.e(
+                                            "Read and deleted",
+                                            "$bookId deleted from the finished list"
+                                        )
                                         // for now, only average speed of reading is used
                                         database.collection("users").document(user.uid)
                                             .update(
@@ -191,20 +195,29 @@ class BookDetailActivity : AppCompatActivity() {
             // check if the book is already in the user's list or not
             database.collection("users").document(user!!.uid).collection("finished_reading")
                 .document(bookId.toString()).get().addOnSuccessListener { docSnap ->
-                    if(docSnap.exists()) {
+                    if (docSnap.exists()) {
                         // already exists in the finished reading list
-                        Toast.makeText(this, "This book is already in your finished list!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "This book is already in your finished list!",
+                            Toast.LENGTH_SHORT
+                        ).show()
 
                     } else {
                         // not exists
                         // add to finished_reading collection
-                        database.collection("users").document(user.uid).collection("finished_reading")
+                        database.collection("users").document(user.uid)
+                            .collection("finished_reading")
                             .document(bookId.toString()).set(book).addOnSuccessListener {
                                 Log.d(
                                     "Success",
                                     "DocumentSnapshot successfully written!"
                                 )
-                                Toast.makeText(this, "Added to your finished list.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    this,
+                                    "Added to your finished list.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 // for now, only average speed of reading is used
                                 database.collection("users").document(user.uid)
                                     .update(
@@ -212,9 +225,13 @@ class BookDetailActivity : AppCompatActivity() {
                                         FieldValue.increment(pageCount.toDouble() * 300 / 200)
                                     )
                                 // also delete from the reading_list if exists
-                                database.collection("users").document(user.uid).collection("reading_list")
+                                database.collection("users").document(user.uid)
+                                    .collection("reading_list")
                                     .document(bookId.toString()).delete().addOnSuccessListener {
-                                        Log.e("Read and deleted", "$bookId deleted from the reading list")
+                                        Log.e(
+                                            "Read and deleted",
+                                            "$bookId deleted from the reading list"
+                                        )
                                     }
                             }.addOnFailureListener { e ->
                                 Log.w("Error", "Error writing document", e)
@@ -230,35 +247,51 @@ class BookDetailActivity : AppCompatActivity() {
                                         if (snapshot["avg_rating"] != null && snapshot["times"] != null) {
                                             // check if the user already rated
                                             database.collection("books").document(bookId.toString())
-                                                .collection("users_read_this").whereEqualTo("id", user.uid)
+                                                .collection("users_read_this")
+                                                .whereEqualTo("id", user.uid)
                                                 .get().addOnSuccessListener {
                                                     // already rated, (avg - oldRating) and then (avg + new rating)
-                                                    database.collection("books").document(bookId.toString())
-                                                        .collection("users_read_this").document(user.uid)
+                                                    database.collection("books")
+                                                        .document(bookId.toString())
+                                                        .collection("users_read_this")
+                                                        .document(user.uid)
                                                         .update("rating", rating)
-                                                    Log.e("already rated enter", "new rating: $rating")
+                                                    Log.e(
+                                                        "already rated enter",
+                                                        "new rating: $rating"
+                                                    )
 
                                                     // sum up all the ratings
-                                                    database.collection("books").document(bookId.toString())
+                                                    var finalRating = 0.0
+                                                    var finalTimes = 0
+                                                    database.collection("books")
+                                                        .document(bookId.toString())
                                                         .collection("users_read_this")
-                                                        .whereGreaterThan("rating", 0.0).get()
+                                                        .whereGreaterThanOrEqualTo("rating", 0.0)
+                                                        .get()
                                                         .addOnSuccessListener { documents ->
-                                                            var finalRating = 0.0
                                                             for (document in documents) {
-                                                                val tempRating = document.data["rating"]
-                                                                if (tempRating is Long) finalRating += tempRating.toDouble()
-                                                                else if (tempRating is Double) finalRating += tempRating
+                                                                val tempRating =
+                                                                    document.data["rating"]
+                                                                if (tempRating is Long) {
+                                                                    finalRating += tempRating.toDouble()
+                                                                    finalTimes += 1
+                                                                } else if (tempRating is Double) {
+                                                                    finalRating += tempRating
+                                                                    finalTimes += 1
+                                                                }
                                                             }
-
                                                             // finally, update the avg_rating
                                                             database.collection("books")
                                                                 .document(bookId.toString())
-                                                                .update("avg_rating", finalRating)
-                                                            Log.e(
-                                                                "already rated sum",
-                                                                "sum ratings: $finalRating"
-                                                            )
+                                                                .update(
+                                                                    mapOf(
+                                                                        "avg_rating" to finalRating,
+                                                                        "times" to finalTimes
+                                                                    )
+                                                                )
                                                         }
+
                                                     Toast.makeText(
                                                         this,
                                                         "Your rating is updated!",
@@ -266,31 +299,44 @@ class BookDetailActivity : AppCompatActivity() {
                                                     ).show()
                                                 }.addOnFailureListener {
                                                     // not rated before, set the user data
-                                                    database.collection("books").document(bookId.toString())
-                                                        .collection("users_read_this").document(user.uid)
+                                                    database.collection("books")
+                                                        .document(bookId.toString())
+                                                        .collection("users_read_this")
+                                                        .document(user.uid)
                                                         .update("rating", rating)
 
                                                     // sum up all the ratings
                                                     var finalRating = 0.0
-                                                    database.collection("books").document(bookId.toString())
+                                                    var finalTimes = 0
+                                                    database.collection("books")
+                                                        .document(bookId.toString())
                                                         .collection("users_read_this")
-                                                        .whereGreaterThan("rating", 0.0).get()
+                                                        .whereGreaterThanOrEqualTo("rating", 0.0)
+                                                        .get()
                                                         .addOnSuccessListener { documents ->
                                                             for (document in documents) {
-                                                                val tempRating = document.data["rating"]
-                                                                if (tempRating is Long) finalRating += tempRating.toDouble()
-                                                                else if (tempRating is Double) finalRating += tempRating
+                                                                val tempRating =
+                                                                    document.data["rating"]
+                                                                if (tempRating is Long) {
+                                                                    finalRating += tempRating.toDouble()
+                                                                    finalTimes += 1
+                                                                } else if (tempRating is Double) {
+                                                                    finalRating += tempRating
+                                                                    finalTimes += 1
+                                                                }
                                                             }
+                                                            // finally, update the avg_rating
+                                                            database.collection("books")
+                                                                .document(bookId.toString())
+                                                                .update(
+                                                                    mapOf(
+                                                                        "avg_rating" to finalRating,
+                                                                        "times" to finalTimes
+                                                                    )
+                                                                )
                                                         }
 
-                                                    // finally, update the avg_rating
-                                                    database.collection("books").document(bookId.toString())
-                                                        .update(
-                                                            hashMapOf(
-                                                                "avg_rating" to finalRating,
-                                                                "times" to FieldValue.increment(1)
-                                                            )
-                                                        )
+
                                                 }
                                         }
                                     }.addOnFailureListener {
@@ -302,6 +348,7 @@ class BookDetailActivity : AppCompatActivity() {
                                     .collection("users_read_this").document(user.uid)
                                     .set(userData)
                             } else {
+                                Log.e("book first time", user.uid)
                                 // set the book to books collection for the first time
                                 val userData = hashMapOf("id" to user.uid, "rating" to rating)
                                 val bookForAverage = hashMapOf(
@@ -317,13 +364,17 @@ class BookDetailActivity : AppCompatActivity() {
                                     "avg_rating" to 0.0,
                                     "times" to 0
                                 )
-                                database.collection("books").document(bookId.toString()).set(bookForAverage)
+                                database.collection("books").document(bookId.toString())
+                                    .set(bookForAverage)
                                     .addOnCompleteListener {
                                         database.collection("books").document(bookId.toString())
                                             .collection("users_read_this").document(user.uid)
                                             .set(userData)
                                     }
-                                database.collection("books").document(bookId.toString())
+
+                                // finally, update the avg_rating
+                                database.collection("books")
+                                    .document(bookId.toString())
                                     .update(
                                         mapOf(
                                             "avg_rating" to rating,
@@ -333,8 +384,6 @@ class BookDetailActivity : AppCompatActivity() {
                             }
                         }
                 }
-
-
 
 
         })
