@@ -16,9 +16,8 @@ import kotlinx.android.synthetic.main.fragment_finished_list.*
 import kotlinx.android.synthetic.main.fragment_recommendation.*
 
 class RecommendationFragment : Fragment() {
-    private var bookIdArrayList: ArrayList<String>? = null
-    private var usersAlsoReadIdArrayList: ArrayList<SimilarUserInfo>? = null
-
+    // private var bookIdArrayList: ArrayList<String>? = null
+    private var countSameBooks: Int = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -37,64 +36,76 @@ class RecommendationFragment : Fragment() {
     }
 
     private fun getBooksAndUsers() {
-
-        bookIdArrayList = ArrayList()
-        usersAlsoReadIdArrayList = ArrayList()
         val user = FirebaseAuth.getInstance().currentUser
         val database = Firebase.firestore
-        val docRef =
-            database.collection("users").document(user!!.uid).collection("finished_reading")
-        docRef.get().addOnSuccessListener { documents ->
-            // get the books of the current user have read
-            if (documents != null) {
-                for (document in documents) {
-                    val data = document.data
-                    val id = data["id"].toString()
-                    Log.e("book id", id)
-                    bookIdArrayList!!.add(id)
-                    textViewRecommendation.text = "${textViewRecommendation.text}" + id + "\n"
-                }
+        val temp_id = "3Q8KtAEACAAJ"
 
-                // if not empty, then find other users who also read this
-                if (bookIdArrayList!!.isNotEmpty()) {
-                    for (bookId in bookIdArrayList!!) {
-                        val docRefBooks = database.collection("books").document(bookId)
-                            .collection("users_read_this")
-                        docRefBooks.get().addOnSuccessListener { documents ->
-                            if (documents != null) {
-                                var times = 0
-                                for (document in documents) {
-                                    val data = document.data
-                                    val id = data["id"].toString()
-                                    val rating = data["rating"].toString()
-
-                                    val info = SimilarUserInfo(id, 0)
-
-                                    // check if the user is not the current user
-                                    if (id != user.uid) {
-                                        Log.e(
-                                            "information",
-                                            "user: $id, book: $bookId, rating: $rating"
-                                        )
-                                        times += 1
-                                        textViewUsersAlsoRead.text =
-                                            "${textViewUsersAlsoRead.text}" + id + "\n"
+        // find other users who also read the book
+        database.collection("books").document(temp_id).collection("users_read_this")
+            .whereNotEqualTo("id", user!!.uid).get()
+            .addOnSuccessListener { documents ->
+                if (documents != null) {
+                    for (doc in documents) {
+                        val data = doc.data
+                        val tempUserId = data["id"]
+                        // find each user's books where rating > 3
+                        database.collection("users").document(tempUserId.toString())
+                            .collection("finished_reading")
+                            .whereGreaterThanOrEqualTo("userRating", 3)
+                            .get().addOnSuccessListener { snapshot ->
+                                for (doc in snapshot.documents) {
+                                    if (doc["id"].toString() != temp_id) {
+                                        Log.e("marked", "different book than temp_id: ${doc["id"]}")
+                                        // check if the current user and the other user has a similar taste
+                                        val user = FirebaseAuth.getInstance().currentUser
+                                        database.collection("users").document(user!!.uid)
+                                            .collection("finished_reading")
+                                            .whereGreaterThanOrEqualTo("userRating", 3).get()
+                                            .addOnSuccessListener { snap ->
+                                                for (currentUsersDoc in snap) {
+                                                    if (doc["id"] == currentUsersDoc.data["id"]) {
+                                                        Log.e(
+                                                            "marked",
+                                                            "found a same book: ${currentUsersDoc.data["id"]}"
+                                                        )
+                                                        countSameBooks += 1
+                                                    }
+                                                }
+                                                Log.e("marked", countSameBooks.toString())
+                                                // normalde burada if
+                                                if (countSameBooks >= 2) {
+                                                    Log.e("marked", "similar taste: $tempUserId")
+                                                    database.collection("users")
+                                                        .document(tempUserId.toString())
+                                                        .collection("finished_reading")
+                                                        .whereGreaterThanOrEqualTo("userRating", 3)
+                                                        .get().addOnSuccessListener { snapshot ->
+                                                            for (doc in snapshot.documents) {
+                                                                if (doc["id"].toString() != temp_id) {
+                                                                    // check if the book is already read by current user or not
+                                                                    val ref = database.collection("users")
+                                                                        .document(user.uid)
+                                                                        .collection("finished_reading")
+                                                                        .whereEqualTo(
+                                                                            "id",
+                                                                            doc["id"]
+                                                                        ).get()
+                                                                    ref.addOnSuccessListener { q ->
+                                                                        if(q.isEmpty) {
+                                                                            Log.e("marked", "recommend: ${doc["title"]} - ${doc["userRating"]}")
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                }
+                                            }
                                     }
                                 }
-                                // if not empty, get other books the new user read
-
                             }
-                        }
                     }
                 }
-                // progressBarFinishedReading.visibility = View.GONE
-            } else {
-                Toast.makeText(this.context, "There is no book in this list!", Toast.LENGTH_SHORT)
-                    .show()
-            }
 
-        }.addOnFailureListener { exception ->
-            Log.e("failed", "Error getting documents: ", exception)
-        }
+            }
     }
 }

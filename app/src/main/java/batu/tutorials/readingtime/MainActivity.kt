@@ -78,14 +78,16 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_item_reading -> replaceFragment(ReadingListFragment(), "Reading List")
                 R.id.nav_item_finished -> replaceFragment(FinishedListFragment(), "Finished Reading")
                 R.id.nav_item_recommendations -> replaceFragment((RecommendationFragment()), "Recommendations")
+                R.id.nav_item_profile -> replaceFragment(ProfileFragment(), "Profile")
                 R.id.nav_item_signout -> signOut()
             }
             true
         }
 
-        navView.setCheckedItem(R.id.nav_item_home)
-        val defFragment = HomeFragment()
-        replaceFragment(defFragment, "Home")
+        // TODO: this changed to profile to test
+        navView.setCheckedItem(R.id.nav_item_profile)
+        val defFragment = ProfileFragment()
+        replaceFragment(defFragment, "Profile")
     }
 
     private fun replaceFragment(fragment: Fragment, title: String) {

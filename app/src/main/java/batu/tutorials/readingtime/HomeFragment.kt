@@ -184,37 +184,8 @@ class HomeFragment : Fragment() {
         // loading - starting
         progressBar.visibility = View.VISIBLE
 
-        val apiKey = "AIzaSyAZLJbLIg5C_BCwYprOH8yofjAZt8LKbZY"
-        var searchKeywords = "sherlock holmes"
-        var splitKeywords = searchKeywords.replace(" ", "+")
+        
 
-        val baseUrl =
-            "https://www.googleapis.com/books/v1/volumes?q=flowers+inauthor:keyes&key=$apiKey"
-        val searchUrl = "https://www.googleapis.com/books/v1/volumes?q=$splitKeywords"
-
-        // Instantiate the RequestQueue.
-        val queue = Volley.newRequestQueue(this.context)
-
-        // jsonRequest
-        val jsonObjectRequest = JsonObjectRequest(
-            Request.Method.GET, baseUrl, null,
-            { response ->
-                val items = response.getJSONArray("items")
-                val gson = GsonBuilder().registerTypeAdapter(Book::class.java, BookDeserializer()).create()
-                for (i in 0 until items.length()) {
-                    val book = gson.fromJson(items.get(i).toString(), Book::class.java)
-                    bookList.add(book)
-                    Log.e("Book -> ${i+1}", book.title)
-                }
-                Log.e("Size in for", bookList.size.toString())
-            },
-            { error ->
-                // TODO: Handle error
-            }
-        )
-
-        // Add the request to the RequestQueue.
-        queue.add(jsonObjectRequest)
         // loading - done
         progressBar.visibility = View.INVISIBLE
     }
