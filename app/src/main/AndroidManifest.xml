@@ -12,7 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ReadingTime">
-        <activity android:name=".BookDetailActivity"></activity>
+        <activity android:name=".RecommendationActivity"></activity>
+        <activity android:name=".BookDetailActivity" />
         <activity android:name=".DetailActivity" />
         <activity
             android:name=".MainActivity"

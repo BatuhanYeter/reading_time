@@ -100,6 +100,7 @@ class BookAdapter     // creating constructor for array list and context.
             i.putExtra("times", times)
             Log.e("authors in adapter", bookInfo.authors.toString())
 
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
             // after passing that data we are
             // starting our new intent.

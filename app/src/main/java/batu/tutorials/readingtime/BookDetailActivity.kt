@@ -44,6 +44,7 @@ class BookDetailActivity : AppCompatActivity() {
     private lateinit var textViewAuthors: TextView
     private lateinit var ratingBarAvg: RatingBar
     private lateinit var ratingBarUser: RatingBar
+    private lateinit var buttonRecommendation: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +63,7 @@ class BookDetailActivity : AppCompatActivity() {
         imageViewBook = findViewById(R.id.imageViewBookDetail)
         ratingBarAvg = findViewById(R.id.ratingBarAvg)
         ratingBarUser = findViewById(R.id.ratingBarUser)
+        buttonRecommendation = findViewById(R.id.buttonRecommend)
 
         // getting the data which we have passed from our adapter class.
         title = intent.getStringExtra("title")
@@ -445,5 +447,13 @@ class BookDetailActivity : AppCompatActivity() {
                 }
             }
 
+        // recommendations
+        buttonRecommendation.setOnClickListener {
+            val i = Intent(applicationContext, RecommendationActivity::class.java)
+            Log.e("activity", "$title, $bookId")
+            i.putExtra("title", title)
+            i.putExtra("bookId", bookId)
+            startActivity(i)
+        }
     }
 }

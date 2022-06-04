@@ -21,11 +21,6 @@
         android:label="fragment_finished_list"
         tools:layout="@layout/fragment_finished_list" />
     <fragment
-        android:id="@+id/recommendationFragment"
-        android:name="batu.tutorials.readingtime.RecommendationFragment"
-        android:label="fragment_recommendation"
-        tools:layout="@layout/fragment_recommendation" />
-    <fragment
         android:id="@+id/profileFragment"
         android:name="batu.tutorials.readingtime.ProfileFragment"
         android:label="fragment_profile"

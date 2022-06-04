@@ -77,7 +77,6 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_item_home -> replaceFragment(HomeFragment(), "Home")
                 R.id.nav_item_reading -> replaceFragment(ReadingListFragment(), "Reading List")
                 R.id.nav_item_finished -> replaceFragment(FinishedListFragment(), "Finished Reading")
-                R.id.nav_item_recommendations -> replaceFragment((RecommendationFragment()), "Recommendations")
                 R.id.nav_item_profile -> replaceFragment(ProfileFragment(), "Profile")
                 R.id.nav_item_signout -> signOut()
             }
