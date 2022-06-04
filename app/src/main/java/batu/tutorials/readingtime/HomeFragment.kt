@@ -64,10 +64,10 @@ class HomeFragment : Fragment() {
             getBooksInfo(editTextSearchBooks.text.toString())
         })
 
-        recyclerView.apply {
+        /* recyclerView.apply {
             layoutManager = GridLayoutManager(context, 2)
             adapter = CardAdapter(bookList, this.context)
-        }
+        } */
 
         /* binding.recyclerView.apply {
             layoutManager = GridLayoutManager(this.requireContext(), 2)

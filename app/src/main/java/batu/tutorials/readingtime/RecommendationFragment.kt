@@ -16,7 +16,8 @@ import kotlinx.android.synthetic.main.fragment_finished_list.*
 import kotlinx.android.synthetic.main.fragment_recommendation.*
 
 class RecommendationFragment : Fragment() {
-    // private var bookIdArrayList: ArrayList<String>? = null
+    // need to make this <BookInfo>
+    private var bookIdList: MutableList<String> = mutableListOf()
     private var countSameBooks: Int = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,11 +93,16 @@ class RecommendationFragment : Fragment() {
                                                                         ).get()
                                                                     ref.addOnSuccessListener { q ->
                                                                         if(q.isEmpty) {
+                                                                            bookIdList.add(doc["id"].toString())
                                                                             Log.e("marked", "recommend: ${doc["title"]} - ${doc["userRating"]}")
                                                                         }
+                                                                        // get unique ones
+                                                                        val uniqueBooks = bookIdList.distinct()
+                                                                        Log.e("marked", uniqueBooks.toString())
                                                                     }
                                                                 }
                                                             }
+
                                                         }
                                                 }
                                             }
