@@ -6,11 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.ProgressBar
 import android.widget.Toast
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import batu.tutorials.readingtime.databinding.ActivityMainBinding
@@ -18,7 +14,6 @@ import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.google.gson.GsonBuilder
 import kotlinx.android.synthetic.main.fragment_home.*
 import org.json.JSONException
 import java.util.ArrayList
@@ -161,7 +156,7 @@ class HomeFragment : Fragment() {
                     // manager for our recycler view.
                     val linearLayoutManager =
                         LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
-                    val mRecyclerView = recyclerView
+                    val mRecyclerView = recyclerViewRecommendations
 
                     // in below line we are setting layout manager and
                     // adapter to our recycler view.
