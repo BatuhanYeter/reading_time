@@ -153,7 +153,7 @@ class BookDetailActivity : AppCompatActivity() {
                                         database.collection("users").document(user.uid)
                                             .update(
                                                 "total_time",
-                                                FieldValue.increment(-pageCount.toDouble() * 300 / 200)
+                                                FieldValue.increment(-pageCount.toDouble() * 300 / 238)
                                             )
                                     }
                             }
@@ -224,7 +224,7 @@ class BookDetailActivity : AppCompatActivity() {
                                 database.collection("users").document(user.uid)
                                     .update(
                                         "total_time",
-                                        FieldValue.increment(pageCount.toDouble() * 300 / 200)
+                                        FieldValue.increment(pageCount.toDouble() * 300 / 238)
                                     )
                                 // also delete from the reading_list if exists
                                 database.collection("users").document(user.uid)

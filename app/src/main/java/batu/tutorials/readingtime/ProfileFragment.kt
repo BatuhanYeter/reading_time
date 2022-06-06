@@ -1,10 +1,11 @@
 package batu.tutorials.readingtime
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -42,49 +43,64 @@ class ProfileFragment : Fragment() {
             document ->
             if (document != null) {
                 val data = document.data
+                val totalTime = data?.get("total_time")
+                Log.e("total", totalTime.toString())
+                val convertedTime: Int
                 textViewProfileName.text = data!!["name"].toString()
-                textViewProfileReadingTime.text = data["total_time"].toString()
+                when (totalTime) {
+                    is Long -> {
+                        convertedTime = totalTime.toInt()
+                        textViewProfileReadingTime.text = timeConvert(convertedTime)
+                    }
+                    is Double -> {
+                        convertedTime = totalTime.toInt()
+                        textViewProfileReadingTime.text = timeConvert(convertedTime)
+                    }
+                    is Int -> {
+                        convertedTime = totalTime
+                        textViewProfileReadingTime.text = timeConvert(convertedTime)
+                    }
+                }
             }
         }
 
-        // get total books
-        database.collection("users").document(user.uid).collection("finished_reading").get().addOnSuccessListener {
-            documents ->
-            var total_number = 0
-            for(doc in documents) {
-                total_number += 1
-            }
-            textViewProfileTotalBooks.text = total_number.toString()
-        }
-
-        // get total pages
+        // get total pages and total books already read
         database.collection("users").document(user.uid).collection("finished_reading").get().addOnSuccessListener {
                 documents ->
             var total_pages = 0
+            var total_number = 0
             for(doc in documents) {
+                total_number += 1
                 val pages = doc.data["pageCount"]
                     if (pages is Long) total_pages += pages.toInt()
                     else if (pages is Double) total_pages += pages.toInt()
                     else if (pages is Int) total_pages += pages
             }
             textViewProfileTotalPages.text = total_pages.toString()
-            // textViewProfileNeededReadingTime.text = (total_pages * 300 / 200).toString()
+            textViewProfileTotalBooks.text = total_number.toString()
         }
 
-        // calculate how much more time the user needs to read
+        // calculate how much more time the user needs to read and the number of books
         database.collection("users").document(user.uid).collection("reading_list").get().addOnSuccessListener {
                 documents ->
             var total_pages = 0
+            var total_number = 0
             for(doc in documents) {
+                total_number += 1
                 val pages = doc.data["pageCount"]
                 if (pages is Long) total_pages += pages.toInt()
                 else if (pages is Double) total_pages += pages.toInt()
                 else if (pages is Int) total_pages += pages
             }
-            textViewProfileNeededReadingTime.text = (total_pages * 300 / 200).toString()
+            textViewProfileNeededReadingTime.text = timeConvert((total_pages * 300 / 238))
+            textViewTotalReadingList.text = total_number.toString()
         }
 
         // ready to go, end loading
         progressBarProfile.visibility = View.GONE
+    }
+
+    private fun timeConvert(time: Int): String {
+        return (time / (60 * 24)).toString() + " Day(s), " + time / 60 % 24 + " Hour(s), " + time % 60 + " Minute(s)"
     }
 }

@@ -9,8 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.activity_recommendation.*
-import kotlinx.android.synthetic.main.fragment_home.*
-import kotlinx.android.synthetic.main.fragment_home.recyclerViewRecommendations
+import kotlinx.android.synthetic.main.fragment_home.recyclerViewHomeMostRead
 
 class RecommendationActivity : AppCompatActivity() {
     var title: String? = null

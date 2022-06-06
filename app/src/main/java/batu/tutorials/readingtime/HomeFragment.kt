@@ -14,6 +14,11 @@ import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.activity_recommendation.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import org.json.JSONException
 import java.util.ArrayList
@@ -22,6 +27,7 @@ class HomeFragment : Fragment() {
     private lateinit var binding: ActivityMainBinding
     private var mRequestQueue: RequestQueue? = null
     private var bookInfoArrayList: ArrayList<BookInfo>? = null
+
     // private lateinit var editTextSearch: EditText
     // private lateinit var buttonSearch: ImageButton
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,12 +43,11 @@ class HomeFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // initializing our views.
-        /* progressBar = findViewById(R.id.progressBar)
-        editTextSearch = findViewById(R.id.editTextSearchBooks)
-        buttonSearch = findViewById(R.id.imageButtonSearch) */
-
         binding = ActivityMainBinding.inflate(layoutInflater)
+
+        // for the beginning, load the most read books
+        getMostReadBooks()
+
         // initializing on click listener for our button.
         imageButtonSearch.setOnClickListener(View.OnClickListener {
             progressBar.visibility = View.VISIBLE
@@ -59,20 +64,11 @@ class HomeFragment : Fragment() {
             getBooksInfo(editTextSearchBooks.text.toString())
         })
 
-        /* recyclerView.apply {
-            layoutManager = GridLayoutManager(context, 2)
-            adapter = CardAdapter(bookList, this.context)
-        } */
 
-        /* binding.recyclerView.apply {
-            layoutManager = GridLayoutManager(this.requireContext(), 2)
-            adapter = CardAdapter(bookList, this@MainActivity)
-        } */
         super.onViewCreated(view, savedInstanceState)
     }
 
     private fun getBooksInfo(query: String) {
-
         // creating a new array list.
         bookInfoArrayList = ArrayList<BookInfo>()
 
@@ -115,7 +111,7 @@ class HomeFragment : Fragment() {
                         val imageLinks = volumeObj.optJSONObject("imageLinks")
 
                         var thumbnail = ""
-                        if(imageLinks == null) thumbnail = ""
+                        if (imageLinks == null) thumbnail = ""
                         else {
                             thumbnail = imageLinks.optString("thumbnail")
                             thumbnail = thumbnail.replace("http", "https")
@@ -156,7 +152,7 @@ class HomeFragment : Fragment() {
                     // manager for our recycler view.
                     val linearLayoutManager =
                         LinearLayoutManager(this.context, RecyclerView.VERTICAL, false)
-                    val mRecyclerView = recyclerViewRecommendations
+                    val mRecyclerView = recyclerViewHomeMostRead
 
                     // in below line we are setting layout manager and
                     // adapter to our recycler view.
@@ -175,11 +171,54 @@ class HomeFragment : Fragment() {
         queue.add(booksRequest)
     }
 
-    private fun getBooks() {
+    private fun getMostReadBooks() {
         // loading - starting
         progressBar.visibility = View.VISIBLE
 
-        
+        // creating a new array list.
+        bookInfoArrayList = ArrayList<BookInfo>()
+        val user = FirebaseAuth.getInstance().currentUser
+        val database = Firebase.firestore
+
+        database.collection("books").orderBy("times", Query.Direction.DESCENDING).get()
+            .addOnSuccessListener {
+                datalist ->
+                if(datalist != null) {
+                    for(data in datalist) {
+                        val title = data["title"].toString()
+                        val id = data["id"].toString()
+                        val subtitle = data["subtitle"].toString()
+                        val authorsArray = data["authors"] as ArrayList<*>
+                        val authorsArrayList = ArrayList<String>()
+                        for (i in authorsArray) {
+                            authorsArrayList.add(i.toString())
+                        }
+                        val publisher = data["publisher"].toString()
+                        val publishedDate = data["publishedDate"].toString()
+                        val description = data["description"].toString()
+                        val pageCount = data["pageCount"] as Long
+                        val thumbnail = data["thumbnail"].toString()
+
+                        val bookInfo = BookInfo(
+                            title,
+                            id,
+                            subtitle,
+                            authorsArrayList,
+                            publisher,
+                            publishedDate,
+                            description,
+                            pageCount.toInt(),
+                            thumbnail
+                        )
+                        bookInfoArrayList!!.add(bookInfo)
+                    }
+                }
+                val adapter = BookAdapter(bookInfoArrayList!!, context!!)
+                val linearLayoutManager =
+                    LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+                recyclerViewHomeMostRead.layoutManager = linearLayoutManager
+                recyclerViewHomeMostRead.adapter = adapter
+            }
 
         // loading - done
         progressBar.visibility = View.INVISIBLE

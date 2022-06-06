@@ -1,25 +1,18 @@
 package batu.tutorials.readingtime
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import batu.tutorials.readingtime.databinding.ActivityMainBinding
-import com.android.volley.Request
 import com.android.volley.RequestQueue
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
@@ -27,12 +20,8 @@ import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.gson.GsonBuilder
-import kotlinx.android.synthetic.main.activity_loading.*
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import org.json.JSONException
-import java.util.ArrayList
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private val signInLauncher = registerForActivityResult(
@@ -83,10 +72,10 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        // TODO: this changed to profile to test
-        navView.setCheckedItem(R.id.nav_item_profile)
-        val defFragment = ProfileFragment()
-        replaceFragment(defFragment, "Profile")
+        // done: this changed to profile to test
+        navView.setCheckedItem(R.id.nav_item_home)
+        val defFragment = HomeFragment()
+        replaceFragment(defFragment, "Home")
     }
 
     private fun replaceFragment(fragment: Fragment, title: String) {

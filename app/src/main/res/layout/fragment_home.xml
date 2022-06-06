@@ -22,7 +22,8 @@
             android:id="@+id/editTextSearchBooks"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="4" />
+            android:layout_weight="4"
+            android:hint="Search a book" />
 
         <!--image button for our search button -->
         <ImageButton
@@ -37,7 +38,7 @@
 
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewRecommendations"
+        android:id="@+id/recyclerViewHomeMostRead"
         android:layout_width="match_parent"
         android:layout_height="580dp"
         android:layout_marginStart="24dp"

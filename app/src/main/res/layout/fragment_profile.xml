@@ -62,21 +62,39 @@
                 android:textSize="15sp"
                 android:textStyle="bold"
                 />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:text="Total Books Read"
+                android:text="Total Pages You've Read"
                 android:textColor="@color/white"
                 android:textSize="15sp"
-                android:textStyle="bold"
-                />
+                android:textStyle="bold" />
             <TextView
                 android:id="@+id/textViewProfileTotalPages"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="Total Pages You Have Read"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Total Books In Your Reading List"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/textViewTotalReadingList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Total Books In Your Reading List"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 android:textStyle="bold"
