@@ -100,16 +100,14 @@ class MainActivity : AppCompatActivity() {
     private fun createSignInIntent() {
         val providers = arrayListOf(
             AuthUI.IdpConfig.EmailBuilder().build(),
-            AuthUI.IdpConfig.GoogleBuilder().build(),
-            AuthUI.IdpConfig.TwitterBuilder().build(),
-            AuthUI.IdpConfig.AnonymousBuilder().build()
+            AuthUI.IdpConfig.GoogleBuilder().build()
         )
 
 
         val signInIntent = AuthUI.getInstance()
             .createSignInIntentBuilder()
             .setAvailableProviders(providers)
-            .setLogo(R.drawable.book)
+            .setLogo(R.drawable.ic_baseline_menu_book_24)
             .setIsSmartLockEnabled(false)
             .build()
         signInLauncher.launch(signInIntent)
